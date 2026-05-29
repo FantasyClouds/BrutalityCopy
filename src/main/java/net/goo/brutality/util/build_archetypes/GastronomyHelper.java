@@ -9,6 +9,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -85,11 +86,27 @@ public class GastronomyHelper {
                     }
                 }
             }
-            int debuffBonus = Mth.ceil(attacker.getAttributeValue(BrutalityAttributes.GASTRONOMY_DEBUFF_LEVEL_MODIFIER.get()));
-            double debuffDuration = attacker.getAttributeValue(BrutalityAttributes.GASTRONOMY_DEBUFF_DURATION_MULTIPLIER.get());
+            int debuffBonus;
+            Attribute levelAttr = BrutalityAttributes.GASTRONOMY_DEBUFF_LEVEL_MODIFIER.get();
+            if (attacker.getAttributes().hasAttribute(levelAttr)) {
+                debuffBonus = Mth.ceil(attacker.getAttributeValue(levelAttr));
+            } else {
+                debuffBonus = 0;
+            }
+
+            double debuffDuration;
+            Attribute durationAttr = BrutalityAttributes.GASTRONOMY_DEBUFF_DURATION_MULTIPLIER.get();
+            if (attacker.getAttributes().hasAttribute(durationAttr)) {
+                debuffDuration = attacker.getAttributeValue(durationAttr);
+            } else {
+                debuffDuration = 0;
+            }
+            ;
+
             effectMap.forEach((effect, data) ->
-                    victim.addEffect(new MobEffectInstance(effect, (int) (data.maxDuration * debuffDuration), data.summedLevel - 1 + debuffBonus)));
-        });
+                    victim.addEffect(new MobEffectInstance(effect,
+                            (int) (data.maxDuration * debuffDuration),
+                            data.summedLevel - 1 + debuffBonus)));});
     }
 
     private static void updateEffectMap(Map<MobEffect, EffectData> map, GastronomyDebuffContainer container) {
